@@ -1,0 +1,16 @@
+[Unit]
+Description=Task Tracker API
+After=network.target
+
+[Service]
+User=tasktracker
+Group=tasktracker
+WorkingDirectory=/opt/task-tracker
+Environment=SERVER_PORT=8080
+ExecStart=/usr/bin/java -jar /opt/task-tracker/app.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
