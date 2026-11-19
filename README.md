@@ -1,4 +1,4 @@
-# Task Tracker API (A)
+# Task Tracker API
 
 A RESTful Task Tracker API built with Java and Spring Boot to create, manage, update, and delete tasks.
 
@@ -47,10 +47,10 @@ The application will run on the default port `8080`.
 
 The application supports environment-based configuration.
 
-**Change server port:**
+**Change server port** (the variable must be on the same line as the command, or `export`ed first):
 
 ```bash
-SERVER_PORT=9090
+SERVER_PORT=9090 java -jar target/task-tracker-0.0.1-SNAPSHOT.jar
 ```
 
 **Configure database connection:**
@@ -61,19 +61,41 @@ SPRING_DATASOURCE_URL=jdbc:h2:mem:tasktracker
 
 These environment variables can be configured before starting the application.
 
+## Run as a Linux service (systemd)
+
+```bash
+# One-time: a dedicated user, and the jar installed in /opt
+sudo useradd --system --no-create-home --shell /usr/sbin/nologin tasktracker
+./mvnw -q package -DskipTests
+sudo mkdir -p /opt/task-tracker
+sudo cp target/task-tracker-0.0.1-SNAPSHOT.jar /opt/task-tracker/app.jar
+sudo chown -R tasktracker:tasktracker /opt/task-tracker
+
+# Install and start the service
+sudo cp deploy/task-tracker.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now task-tracker
+
+# Check it
+systemctl status task-tracker
+journalctl -u task-tracker -f
+./scripts/smoke-test.sh
+```
+
+
 ## Roadmap
 
-- [x] Step 0 – Project setup
-- [x] Step 1 – Initial application configuration
-- [x] Step 2 – Basic API implementation
-- [ ] Step 3 – Task management improvements
-- [ ] Step 4 – Database configuration
-- [ ] Step 5 – Validation and error handling
-- [ ] Step 6 – API documentation
-- [ ] Step 7 – Unit and integration testing
-- [ ] Step 8 – PostgreSQL integration
-- [ ] Step 9 – Docker configuration
-- [ ] Step 10 – Deployment
+- [x] Step 0 – Workstation setup (WSL, Java, Docker, SSH)
+- [x] Step 1 – Build the app
+- [x] Step 2 – Git & GitHub workflow
+- [x] Step 3 – Linux & shell basics
+- [ ] Step 4 – Docker & Docker Compose
+- [ ] Step 5 – CI with GitHub Actions
+- [ ] Step 6 – Cloud server & CD
+- [ ] Step 7 – Infrastructure as Code (Terraform, Ansible)
+- [ ] Step 8 – Monitoring & logging (Prometheus, Grafana)
+- [ ] Step 9 – Kubernetes basics
+- [ ] Step 10 – Wrap-up
 
 ---
 
