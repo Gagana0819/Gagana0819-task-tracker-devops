@@ -20,9 +20,10 @@ check() {
 check "health is up" 200 "$BASE_URL/actuator/health"
 check "create task" 201 -X POST "$BASE_URL/api/tasks" \
       -H "Content-Type: application/json" -d '{"title":"smoke test"}'
-# TODO 1: GET  /api/tasks          -> 200
-# TODO 2: GET  /api/tasks/999999   -> 404
-# TODO 3: POST {"title":""}        -> 400
+check "list tasks" 200 "$BASE_URL/api/tasks"
+check "unknown id is 404" 404 "$BASE_URL/api/tasks/999999"
+check "blank title is rejected" 400 -X POST "$BASE_URL/api/tasks" \
+      -H "Content-Type: application/json" -d '{"title":""}'
 
 exit $FAILED
 
