@@ -8,6 +8,7 @@ A RESTful Task Tracker API built with Java and Spring Boot to create, manage, up
 - **Framework:** Spring Boot 4.1
 - **Build Tool:** Maven
 - **Database:** H2 (PostgreSQL planned for later)
+- PostgreSQL 17 (Docker Compose); H2 for tests
 
 ## Run Locally
 
@@ -89,7 +90,7 @@ journalctl -u task-tracker -f
 - [x] Step 1 – Build the app
 - [x] Step 2 – Git & GitHub workflow
 - [x] Step 3 – Linux & shell basics
-- [ ] Step 4 – Docker & Docker Compose
+- [x] Step 4 – Docker & Docker Compose
 - [ ] Step 5 – CI with GitHub Actions
 - [ ] Step 6 – Cloud server & CD
 - [ ] Step 7 – Infrastructure as Code (Terraform, Ansible)
@@ -101,3 +102,10 @@ journalctl -u task-tracker -f
 
 **Project:** Task Tracker API  
 **Status:** In Development
+
+## Run with Docker Compose
+
+1. Create your environment file:
+
+   ```bash
+   cp .env.example .env
