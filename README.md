@@ -2,6 +2,8 @@
 
 A RESTful Task Tracker API built with Java and Spring Boot to create, manage, update, and delete tasks.
 
+[![CI](https://github.com/Gagana0819/Gagana0819-task-tracker-devops/actions/workflows/ci.yml/badge.svg)](https://github.com/Gagana0819/Gagana0819-task-tracker-devops/actions/workflows/ci.yml)
+
 ## Tech Stack
 
 - **Java:** 21
@@ -108,6 +110,12 @@ journalctl -u task-tracker -f
    ```bash
    docker compose down
    ```
+
+## CI/CD
+
+- very PR builds, tests and smoke-tests the Docker image.
+- Every merge to main publishes ghcr.io/gagana0819/gagana0819-task-tracker-devops with the tags latest and sha-<commit>.
+- Show the pull command: docker pull ghcr.io/gagana0819/gagana0819-task-tracker-devops:latest
 
 ## Roadmap
 
