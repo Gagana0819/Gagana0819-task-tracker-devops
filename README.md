@@ -113,9 +113,12 @@ journalctl -u task-tracker -f
 
 ## CI/CD
 
-- very PR builds, tests and smoke-tests the Docker image.
-- Every merge to main publishes ghcr.io/gagana0819/gagana0819-task-tracker-devops with the tags latest and sha-<commit>.
-- Show the pull command: docker pull ghcr.io/gagana0819/gagana0819-task-tracker-devops:latest
+- Every PR builds, tests and smoke-tests the Docker image.
+- Every merge to `main` publishes `ghcr.io/gagana0819/gagana0819-task-tracker-devops` with the tags `latest` and `sha-<commit>`.
+
+```bash
+docker pull ghcr.io/gagana0819/gagana0819-task-tracker-devops:latest
+```
 
 ## Roadmap
 
@@ -124,7 +127,7 @@ journalctl -u task-tracker -f
 - [x] Step 2 – Git & GitHub workflow
 - [x] Step 3 – Linux & shell basics
 - [x] Step 4 – Docker & Docker Compose
-- [ ] Step 5 – CI with GitHub Actions
+- [x] Step 5 – CI with GitHub Actions
 - [ ] Step 6 – Cloud server & CD
 - [ ] Step 7 – Infrastructure as Code (Terraform, Ansible)
 - [ ] Step 8 – Monitoring & logging (Prometheus, Grafana)
