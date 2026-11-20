@@ -35,8 +35,8 @@ jobs:
           name: test-reports
           path: target/surefire-reports/
         
-    image:
-        name: Docker image
+  image:
+    name: Docker image
     needs: test
     runs-on: ubuntu-latest
     permissions:
