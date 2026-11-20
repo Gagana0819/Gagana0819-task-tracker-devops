@@ -7,8 +7,7 @@ A RESTful Task Tracker API built with Java and Spring Boot to create, manage, up
 - **Java:** 21
 - **Framework:** Spring Boot 4.1
 - **Build Tool:** Maven
-- **Database:** H2 (PostgreSQL planned for later)
-- PostgreSQL 17 (Docker Compose); H2 for tests
+- **Database:** PostgreSQL 17 (Docker Compose); H2 in-memory for tests
 
 ## Run Locally
 
@@ -83,6 +82,32 @@ journalctl -u task-tracker -f
 ./scripts/smoke-test.sh
 ```
 
+## Run with Docker Compose
+
+1. Create your environment file (then set your own password in `.env`):
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Build and start the app and PostgreSQL:
+
+   ```bash
+   docker compose up -d --build
+   docker compose ps   # wait until both show "healthy"
+   ```
+
+3. Test it:
+
+   ```bash
+   ./scripts/smoke-test.sh
+   ```
+
+4. Stop it (your data stays in the `pgdata` volume):
+
+   ```bash
+   docker compose down
+   ```
 
 ## Roadmap
 
@@ -100,12 +125,4 @@ journalctl -u task-tracker -f
 
 ---
 
-**Project:** Task Tracker API  
-**Status:** In Development
-
-## Run with Docker Compose
-
-1. Create your environment file:
-
-   ```bash
-   cp .env.example .env
+**Project:** Task Tracker API · **Status:** In Development
