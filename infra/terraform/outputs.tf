@@ -3,9 +3,9 @@ output "instance_id" {
 }
 
 output "public_ip" {
-  value = aws_instance.server.public_ip
+  value = aws_eip.web.public_ip
 }
 
 output "ssh_command" {
-  value = "ssh ubuntu@${aws_instance.server.public_ip}"
+  value = "ssh ubuntu@${aws_eip.web.public_ip}"
 }

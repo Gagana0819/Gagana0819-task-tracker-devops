@@ -90,3 +90,32 @@ resource "aws_instance" "server" {
     ignore_changes = [ami]
   }
 }
+
+# ---------- Permanent IP (Elastic IP) ----------
+# We made this IP by hand in Step 6. "import" tells Terraform:
+# don't create a new IP - adopt (take over) the one that already exists.
+import {
+  to = aws_eip.web
+  id = "eipalloc-0232e29719d0c7d7d"
+}
+
+resource "aws_eip" "web" {
+  domain = "vpc"
+
+  tags = {
+    Name = "task-tracker-ip"
+  }
+
+  # DuckDNS points at this IP. Never delete it, even by accident.
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+# Attach the IP to the new server. If it is on another server,
+# move it over in one step (no gap).
+resource "aws_eip_association" "web" {
+  allocation_id       = aws_eip.web.id
+  instance_id         = aws_instance.server.id
+  allow_reassociation = true
+}
