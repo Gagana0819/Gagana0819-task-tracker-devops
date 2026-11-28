@@ -76,8 +76,108 @@
         state: started
         enabled: true
 
+    # ---------- Docker, Nginx, certbot ----------
+    - name: Install Docker, Compose, Nginx and certbot
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - docker-compose-v2
+          - nginx
+          - certbot
+          - python3-certbot-nginx
+        state: present
+
+    - name: The ubuntu user may use Docker without sudo
+      ansible.builtin.user:
+        name: ubuntu
+        groups: docker
+        append: true
+
+    - name: Docker is running and starts at boot
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    # ---------- App files ----------
+    - name: App folder exists
+      ansible.builtin.file:
+        path: /opt/task-tracker
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+        mode: "0755"
+
+    - name: Copy compose.yaml and deploy.sh from the repo (deploy/aws)
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../../deploy/aws/{{ item.name }}"
+        dest: "/opt/task-tracker/{{ item.name }}"
+        owner: ubuntu
+        group: ubuntu
+        mode: "{{ item.mode }}"
+      loop:
+        - { name: compose.yaml, mode: "0644" }
+        - { name: deploy.sh, mode: "0755" }
+
+    - name: Create .env with a new random database password (first time only)
+      ansible.builtin.shell: |
+        umask 077
+        printf 'POSTGRES_DB=tasks\nPOSTGRES_USER=tasks\nPOSTGRES_PASSWORD=%s\n' "$(openssl rand -hex 24)" > .env
+      args:
+        chdir: /opt/task-tracker
+        creates: /opt/task-tracker/.env
+      become_user: ubuntu
+
+    - name: GitHub Actions deploy key (it may ONLY run deploy.sh)
+      ansible.posix.authorized_key:
+        user: ubuntu
+        key: "{{ lookup('file', '~/.ssh/tasktracker_deploy.pub') }}"
+        key_options: 'restrict,command="/opt/task-tracker/deploy.sh"'
+
+    # ---------- Nginx ----------
+    - name: Nginx site for the app (HTTP for now - certbot adds HTTPS in 7.5)
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/task-tracker
+        force: false # never overwrite: certbot edits this file later
+        mode: "0644"
+        content: |
+          server {
+              listen 80;
+              server_name devops-test-task.duckdns.org;
+
+              location / {
+                  proxy_pass http://127.0.0.1:8080;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+          }
+      notify: Reload nginx
+
+    - name: Turn the site on
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/task-tracker
+        dest: /etc/nginx/sites-enabled/task-tracker
+        state: link
+      notify: Reload nginx
+
+    - name: Turn the default Nginx page off
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Reload nginx
+
+    # ---------- Start the app ----------
+    - name: Start the app (deploy.sh pulls the image and waits until it is healthy)
+      ansible.builtin.command: /opt/task-tracker/deploy.sh
+      changed_when: false # safe to run any time: it only restarts what changed
+
   handlers:
     - name: Restart fail2ban
       ansible.builtin.service:
         name: fail2ban
         state: restarted
+
+    - name: Reload nginx
+      ansible.builtin.shell: nginx -t && systemctl reload nginx
