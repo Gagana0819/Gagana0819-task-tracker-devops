@@ -1,0 +1,83 @@
+---
+# Sets up the Task Tracker server. Safe to run again and again.
+- name: Set up the Task Tracker server
+  hosts: web
+  become: true # run the tasks with sudo
+
+  tasks:
+    # ---------- Updates ----------
+    - name: Update the package list and upgrade everything
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: dist
+
+    - name: Install automatic security updates and fail2ban
+      ansible.builtin.apt:
+        name:
+          - unattended-upgrades
+          - fail2ban
+        state: present
+
+    - name: Check if the upgrade needs a reboot
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_file
+
+    - name: Reboot if needed
+      ansible.builtin.reboot:
+      when: reboot_file.stat.exists
+
+    # ---------- Swap (2G of "spare memory" on disk) ----------
+    - name: Create a 2G swap file
+      ansible.builtin.command: fallocate -l 2G /swapfile
+      args:
+        creates: /swapfile
+      register: swapfile
+
+    - name: Only root may read the swap file
+      ansible.builtin.file:
+        path: /swapfile
+        mode: "0600"
+
+    - name: Format the swap file and turn it on
+      ansible.builtin.shell: mkswap /swapfile && swapon /swapfile
+      when: swapfile.changed
+
+    - name: Turn swap on at every boot
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        line: /swapfile none swap sw 0 0
+
+    # ---------- Firewall ----------
+    - name: Firewall lets in SSH, HTTP and HTTPS
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop: ["22", "80", "443"]
+
+    - name: Firewall is on (blocks everything else coming in)
+      community.general.ufw:
+        state: enabled
+
+    # ---------- fail2ban ----------
+    - name: fail2ban reads the right SSH log (ssh.service on Ubuntu 24.04)
+      ansible.builtin.copy:
+        dest: /etc/fail2ban/jail.d/sshd-ubuntu.local
+        content: |
+          [sshd]
+          journalmatch = _SYSTEMD_UNIT=ssh.service + _COMM=sshd
+        mode: "0644"
+      notify: Restart fail2ban
+
+    - name: fail2ban is running and starts at boot
+      ansible.builtin.service:
+        name: fail2ban
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Restart fail2ban
+      ansible.builtin.service:
+        name: fail2ban
+        state: restarted
