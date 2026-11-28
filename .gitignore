@@ -34,3 +34,8 @@ build/
 
 *.log
 .env
+
+### Terraform ###
+.terraform/
+*.tfstate
+*.tfstate.*
